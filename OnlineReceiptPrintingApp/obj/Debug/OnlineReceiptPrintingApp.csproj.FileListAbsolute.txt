@@ -1,0 +1,17 @@
+C:\Users\bherseg\source\repos\OnlinePointOfSaleThermalPrintingApp\OnlineReceiptPrintingApp\bin\Debug\OnlineReceiptPrintingApp.exe.config
+C:\Users\bherseg\source\repos\OnlinePointOfSaleThermalPrintingApp\OnlineReceiptPrintingApp\bin\Debug\OnlineReceiptPrintingApp.exe
+C:\Users\bherseg\source\repos\OnlinePointOfSaleThermalPrintingApp\OnlineReceiptPrintingApp\bin\Debug\OnlineReceiptPrintingApp.pdb
+C:\Users\bherseg\source\repos\OnlinePointOfSaleThermalPrintingApp\OnlineReceiptPrintingApp\bin\Debug\Newtonsoft.Json.dll
+C:\Users\bherseg\source\repos\OnlinePointOfSaleThermalPrintingApp\OnlineReceiptPrintingApp\bin\Debug\zxing.dll
+C:\Users\bherseg\source\repos\OnlinePointOfSaleThermalPrintingApp\OnlineReceiptPrintingApp\bin\Debug\zxing.presentation.dll
+C:\Users\bherseg\source\repos\OnlinePointOfSaleThermalPrintingApp\OnlineReceiptPrintingApp\bin\Debug\Newtonsoft.Json.xml
+C:\Users\bherseg\source\repos\OnlinePointOfSaleThermalPrintingApp\OnlineReceiptPrintingApp\bin\Debug\zxing.xml
+C:\Users\bherseg\source\repos\OnlinePointOfSaleThermalPrintingApp\OnlineReceiptPrintingApp\bin\Debug\zxing.presentation.xml
+C:\Users\bherseg\source\repos\OnlinePointOfSaleThermalPrintingApp\OnlineReceiptPrintingApp\obj\Debug\OnlineReceiptPrintingApp.csproj.AssemblyReference.cache
+C:\Users\bherseg\source\repos\OnlinePointOfSaleThermalPrintingApp\OnlineReceiptPrintingApp\obj\Debug\OnlineReceiptPrintingApp.frmConfig.resources
+C:\Users\bherseg\source\repos\OnlinePointOfSaleThermalPrintingApp\OnlineReceiptPrintingApp\obj\Debug\OnlineReceiptPrintingApp.Properties.Resources.resources
+C:\Users\bherseg\source\repos\OnlinePointOfSaleThermalPrintingApp\OnlineReceiptPrintingApp\obj\Debug\OnlineReceiptPrintingApp.csproj.GenerateResource.cache
+C:\Users\bherseg\source\repos\OnlinePointOfSaleThermalPrintingApp\OnlineReceiptPrintingApp\obj\Debug\OnlineReceiptPrintingApp.csproj.CoreCompileInputs.cache
+C:\Users\bherseg\source\repos\OnlinePointOfSaleThermalPrintingApp\OnlineReceiptPrintingApp\obj\Debug\OnlineRe.E1A4A3E0.Up2Date
+C:\Users\bherseg\source\repos\OnlinePointOfSaleThermalPrintingApp\OnlineReceiptPrintingApp\obj\Debug\OnlineReceiptPrintingApp.exe
+C:\Users\bherseg\source\repos\OnlinePointOfSaleThermalPrintingApp\OnlineReceiptPrintingApp\obj\Debug\OnlineReceiptPrintingApp.pdb
