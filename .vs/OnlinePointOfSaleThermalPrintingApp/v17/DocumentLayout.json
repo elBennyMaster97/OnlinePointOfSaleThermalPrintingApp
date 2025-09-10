@@ -7,20 +7,15 @@
       "RelativeMoniker": "D:0:0:{D245F23E-A601-4A13-897E-3ED6EAD7EE9D}|OnlineReceiptPrintingApp\\OnlineReceiptPrintingApp.csproj|solutionrelative:onlinereceiptprintingapp\\documents.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{D245F23E-A601-4A13-897E-3ED6EAD7EE9D}|OnlineReceiptPrintingApp\\OnlineReceiptPrintingApp.csproj|c:\\users\\bherseg\\source\\repos\\onlinepointofsalethermalprintingapp\\onlinereceiptprintingapp\\custom58.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D245F23E-A601-4A13-897E-3ED6EAD7EE9D}|OnlineReceiptPrintingApp\\OnlineReceiptPrintingApp.csproj|solutionrelative:onlinereceiptprintingapp\\custom58.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D245F23E-A601-4A13-897E-3ED6EAD7EE9D}|OnlineReceiptPrintingApp\\OnlineReceiptPrintingApp.csproj|C:\\Users\\bherseg\\source\\repos\\OnlinePointOfSaleThermalPrintingApp\\onlinereceiptprintingapp\\tableprinter80llpos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D245F23E-A601-4A13-897E-3ED6EAD7EE9D}|OnlineReceiptPrintingApp\\OnlineReceiptPrintingApp.csproj|solutionrelative:onlinereceiptprintingapp\\tableprinter80llpos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D245F23E-A601-4A13-897E-3ED6EAD7EE9D}|OnlineReceiptPrintingApp\\OnlineReceiptPrintingApp.csproj|C:\\Users\\bherseg\\source\\repos\\OnlinePointOfSaleThermalPrintingApp\\onlinereceiptprintingapp\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{D245F23E-A601-4A13-897E-3ED6EAD7EE9D}|OnlineReceiptPrintingApp\\OnlineReceiptPrintingApp.csproj|c:\\users\\bherseg\\source\\repos\\onlinepointofsalethermalprintingapp\\onlinereceiptprintingapp\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{D245F23E-A601-4A13-897E-3ED6EAD7EE9D}|OnlineReceiptPrintingApp\\OnlineReceiptPrintingApp.csproj|solutionrelative:onlinereceiptprintingapp\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{D245F23E-A601-4A13-897E-3ED6EAD7EE9D}|OnlineReceiptPrintingApp\\OnlineReceiptPrintingApp.csproj|C:\\Users\\bherseg\\source\\repos\\OnlinePointOfSaleThermalPrintingApp\\onlinereceiptprintingapp\\custom80.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D245F23E-A601-4A13-897E-3ED6EAD7EE9D}|OnlineReceiptPrintingApp\\OnlineReceiptPrintingApp.csproj|solutionrelative:onlinereceiptprintingapp\\custom80.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{D245F23E-A601-4A13-897E-3ED6EAD7EE9D}|OnlineReceiptPrintingApp\\OnlineReceiptPrintingApp.csproj|C:\\Users\\bherseg\\source\\repos\\OnlinePointOfSaleThermalPrintingApp\\onlinereceiptprintingapp\\custom58.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D245F23E-A601-4A13-897E-3ED6EAD7EE9D}|OnlineReceiptPrintingApp\\OnlineReceiptPrintingApp.csproj|solutionrelative:onlinereceiptprintingapp\\custom58.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\bherseg\\source\\repos\\ThermalPrinterAppForWebPOS\\elBennyPrinterAppForWebPOS\\Documents.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D245F23E-A601-4A13-897E-3ED6EAD7EE9D}|OnlineReceiptPrintingApp\\OnlineReceiptPrintingApp.csproj|C:\\Users\\bherseg\\source\\repos\\OnlinePointOfSaleThermalPrintingApp\\onlinereceiptprintingapp\\configmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -34,11 +29,23 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 4,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 3,
+              "Title": "Documents.cs",
+              "DocumentMoniker": "C:\\Users\\bherseg\\source\\repos\\ThermalPrinterAppForWebPOS\\elBennyPrinterAppForWebPOS\\Documents.cs",
+              "RelativeDocumentMoniker": "..\\ThermalPrinterAppForWebPOS\\elBennyPrinterAppForWebPOS\\Documents.cs",
+              "ToolTip": "C:\\Users\\bherseg\\source\\repos\\ThermalPrinterAppForWebPOS\\elBennyPrinterAppForWebPOS\\Documents.cs",
+              "RelativeToolTip": "..\\ThermalPrinterAppForWebPOS\\elBennyPrinterAppForWebPOS\\Documents.cs",
+              "ViewState": "AgIAABYGAAAAAAAAAAAAAAkGAAAYAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-09T23:58:09.072Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
               "Title": "ConfigManager.cs",
               "DocumentMoniker": "C:\\Users\\bherseg\\source\\repos\\OnlinePointOfSaleThermalPrintingApp\\OnlineReceiptPrintingApp\\ConfigManager.cs",
               "RelativeDocumentMoniker": "OnlineReceiptPrintingApp\\ConfigManager.cs",
@@ -50,41 +57,15 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "Custom80.cs",
-              "DocumentMoniker": "C:\\Users\\bherseg\\source\\repos\\OnlinePointOfSaleThermalPrintingApp\\OnlineReceiptPrintingApp\\Custom80.cs",
-              "RelativeDocumentMoniker": "OnlineReceiptPrintingApp\\Custom80.cs",
-              "ToolTip": "C:\\Users\\bherseg\\source\\repos\\OnlinePointOfSaleThermalPrintingApp\\OnlineReceiptPrintingApp\\Custom80.cs",
-              "RelativeToolTip": "OnlineReceiptPrintingApp\\Custom80.cs",
-              "ViewState": "AgIAAAwCAAAAAAAAAAAAACQCAAAMAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-29T22:04:14.957Z"
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "TablePrinter80LLPOS.cs",
-              "DocumentMoniker": "C:\\Users\\bherseg\\source\\repos\\OnlinePointOfSaleThermalPrintingApp\\OnlineReceiptPrintingApp\\TablePrinter80LLPOS.cs",
-              "RelativeDocumentMoniker": "OnlineReceiptPrintingApp\\TablePrinter80LLPOS.cs",
-              "ToolTip": "C:\\Users\\bherseg\\source\\repos\\OnlinePointOfSaleThermalPrintingApp\\OnlineReceiptPrintingApp\\TablePrinter80LLPOS.cs",
-              "RelativeToolTip": "OnlineReceiptPrintingApp\\TablePrinter80LLPOS.cs",
-              "ViewState": "AgIAAPoBAAAAAAAAAAAQwAgCAAAgAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-19T17:16:15.096Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
               "Title": "Custom58.cs",
               "DocumentMoniker": "C:\\Users\\bherseg\\source\\repos\\OnlinePointOfSaleThermalPrintingApp\\OnlineReceiptPrintingApp\\Custom58.cs",
               "RelativeDocumentMoniker": "OnlineReceiptPrintingApp\\Custom58.cs",
               "ToolTip": "C:\\Users\\bherseg\\source\\repos\\OnlinePointOfSaleThermalPrintingApp\\OnlineReceiptPrintingApp\\Custom58.cs",
               "RelativeToolTip": "OnlineReceiptPrintingApp\\Custom58.cs",
-              "ViewState": "AgIAAIIAAAAAAAAAAAAAAIUAAAAQAAAAAAAAAA==",
+              "ViewState": "AgIAABIAAAAAAAAAAAAAAEoBAAA8AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-28T23:44:36.457Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-02T03:42:08.319Z"
             },
             {
               "$type": "Document",
@@ -94,22 +75,23 @@
               "RelativeDocumentMoniker": "OnlineReceiptPrintingApp\\Documents.cs",
               "ToolTip": "C:\\Users\\bherseg\\source\\repos\\OnlinePointOfSaleThermalPrintingApp\\OnlineReceiptPrintingApp\\Documents.cs",
               "RelativeToolTip": "OnlineReceiptPrintingApp\\Documents.cs",
-              "ViewState": "AgIAAJ4AAAAAAAAAAADwv4EAAABoAAAAAAAAAA==",
+              "ViewState": "AgIAAA0AAAAAAAAAAAAYwPYEAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-08-28T22:48:50.154Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 1,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\bherseg\\source\\repos\\OnlinePointOfSaleThermalPrintingApp\\OnlineReceiptPrintingApp\\Program.cs",
               "RelativeDocumentMoniker": "OnlineReceiptPrintingApp\\Program.cs",
               "ToolTip": "C:\\Users\\bherseg\\source\\repos\\OnlinePointOfSaleThermalPrintingApp\\OnlineReceiptPrintingApp\\Program.cs",
               "RelativeToolTip": "OnlineReceiptPrintingApp\\Program.cs",
-              "ViewState": "AgIAABkAAAAAAAAAAAAiwCcAAAAOAAAAAAAAAA==",
+              "ViewState": "AgIAAAsAAAAAAAAAAADwvygAAAAOAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-28T22:48:35.378Z"
+              "WhenOpened": "2025-08-28T22:48:35.378Z",
+              "EditorCaption": ""
             }
           ]
         }

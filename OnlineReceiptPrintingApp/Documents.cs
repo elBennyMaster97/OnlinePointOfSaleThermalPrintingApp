@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Printing;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using ZXing.PDF417.Internal;
@@ -44,13 +45,13 @@ namespace OnlineReceiptPrintingApp
             {
                 Receipt58(json);
             }
-            else if (typeDoc == "drawercut" && sizeDoc == "58")
+            else if (typeDoc == "cashSessionCut" && sizeDoc == "58")
             {
-                printCashDrawerCut58(json);
+                printCashSessionCut58(json);
             }
-            else if (typeDoc == "drawercut" && sizeDoc == "80")
+            else if (typeDoc == "cashSessionCut" && sizeDoc == "80")
             {
-                printCashDrawerCut58(json);
+                printCashSessionCut58(json);
             }
 
             else if (typeDoc == "productsSold" && sizeDoc == "58")
@@ -91,12 +92,12 @@ namespace OnlineReceiptPrintingApp
             //deserealización
             dynamic info = JsonConvert.DeserializeObject<dynamic>(parts[0]);
             dynamic sale = JsonConvert.DeserializeObject<dynamic>(parts[1]);
-            dynamic detail = JsonConvert.DeserializeObject<dynamic>(parts[2]);
-            dynamic customer = JsonConvert.DeserializeObject<dynamic>(parts[3]);
-            dynamic seller = JsonConvert.DeserializeObject<dynamic>(parts[4]);
-            dynamic company = JsonConvert.DeserializeObject<dynamic>(parts[5]);
-            dynamic totals = JsonConvert.DeserializeObject<dynamic>(parts[6]);
-            dynamic change = JsonConvert.DeserializeObject<dynamic>(parts[7]);
+            dynamic totals = JsonConvert.DeserializeObject<dynamic>(parts[2]);
+            dynamic changeDetail = JsonConvert.DeserializeObject<dynamic>(parts[3]);
+            dynamic saleDetails = JsonConvert.DeserializeObject<dynamic>(parts[4]);
+            dynamic customer = JsonConvert.DeserializeObject<dynamic>(parts[5]);
+            dynamic seller = JsonConvert.DeserializeObject<dynamic>(parts[6]);
+            dynamic company = JsonConvert.DeserializeObject<dynamic>(parts[7]);
 
             Custom58 obj = new Custom58();
 
@@ -139,22 +140,22 @@ namespace OnlineReceiptPrintingApp
             string saletype = (sale.type == "cash" || sale.type == "card") ? "Contado" : (sale.type == "credit" ? "Crédito" : (sale.type == "deposit" ? "Depósito/Transferencia" : (sale.type == "free" ? "Libre" : "No definido")));
             
             // Normalizamos los campos opcionales de manera segura
-            string customerKey = (customer.customer_key == "none") ? string.Empty : customer.customer_key.ToString().Trim();
+            string customerName = (customer.id == 0) ? string.Empty : customer.name.ToString().Trim();
 
             List<Tuple<string, string, float>> headerLines = new List<Tuple<string, string, float>>
             {
                  new Tuple<string,string, float>($"Folio: {sale.folio}","Left", 7),
-                 new Tuple<string,string, float>($"Fecha: {Convert.ToDateTime(info.sale_date).ToString("dd/MM/yy hh:mm tt")}","Left", 7),
+                 new Tuple<string,string, float>($"Fecha: {Convert.ToDateTime(sale.created_at).ToString("dd/MM/yy hh:mm tt")}","Left", 7),
                  new Tuple<string,string, float>($"T.v.: {saletype}","Left", 7),
                  // cliente solo si tiene valor
                  //new Tuple<string,string, float>(!string.IsNullOrWhiteSpace(customerKey) ? $"Cliente: {customerKey}" : string.Empty,"Left", 7),
-                 new Tuple<string,string, float>($"Atendió: {seller.user_key}","Left", 7),
+                 new Tuple<string,string, float>($"Atendió: {seller.name}","Left", 7),
                 // new Tuple<string,string, float>(sale.type == "cash" ? "Tipo: Contado" : "Tipo: Crédito","Left",7),
             };
             // Cliente solo si tiene valor
-            if (!string.IsNullOrWhiteSpace(customerKey))
+            if (!string.IsNullOrWhiteSpace(customerName))
             {
-                headerLines.Insert(3, new Tuple<string, string, float>($"Cliente: {customerKey}", "Left", 7));
+                headerLines.Insert(3, new Tuple<string, string, float>($"Cliente: {customerName}", "Left", 7));
             }
 
             // totales (cálculos) 
@@ -193,12 +194,12 @@ namespace OnlineReceiptPrintingApp
                 {
                     payMethod.Add(new Tuple<string, string>("CAMBIO:", Convert.ToString(App.moneyFormat(sale.change))));
 
-                    if (change.pending_cash_change == true)
+                    if (changeDetail.has_pending_change == true)
                     {
-                        string changeStatus = change.status == "pending" ? "PENDIENTE" : (change.status == "delivered" ? "ENTREGADO" : (change.status == "cancelled" ? "CANCELADO" : "SIN DEFINIR"));
+                        string changeStatus = changeDetail.status == "pending" ? "PENDIENTE" : (changeDetail.status == "delivered" ? "ENTREGADO" : (changeDetail.status == "cancelled" ? "CANCELADO" : "SIN DEFINIR"));
                         
                         payMethod.Add(new Tuple<string, string>("ESTATUS: ", changeStatus));
-                        payMethod.Add(new Tuple<string, string>("C.F.:", Convert.ToString(App.moneyFormat(change.pending_change))));
+                        payMethod.Add(new Tuple<string, string>("C.F.:", Convert.ToString(App.moneyFormat(changeDetail.amount))));
                         payMethod.Add(new Tuple<string, string>("CONSERVE EL TICKET", ":)"));
                     }
                 }
@@ -225,7 +226,7 @@ namespace OnlineReceiptPrintingApp
 
             //imprimir
             // string codeandnotes = Convert.ToString(info).PadLeft(12, '0');
-            obj.PrintReceipt58(companyLines, headerLines, info, detail, totalesLines, payMethod);
+            obj.PrintReceipt58(companyLines, headerLines, info, saleDetails, totalesLines, payMethod);
         }
         #endregion
 
@@ -251,43 +252,42 @@ namespace OnlineReceiptPrintingApp
 
             string[] parts = jsonData.Split('|');
             dynamic info = JsonConvert.DeserializeObject<dynamic>(parts[0]);
-            dynamic venta = JsonConvert.DeserializeObject(parts[1]);
-            dynamic detalle = JsonConvert.DeserializeObject(parts[2]);
-            dynamic cliente = JsonConvert.DeserializeObject(parts[3]);
-            dynamic user = JsonConvert.DeserializeObject(parts[4]);
-            dynamic empresa = JsonConvert.DeserializeObject(parts[5]);
-            dynamic totales = JsonConvert.DeserializeObject(parts[6]);
-            dynamic cambio = JsonConvert.DeserializeObject(parts[7]);
-
-
+            dynamic sale = JsonConvert.DeserializeObject(parts[1]);
+            dynamic totals = JsonConvert.DeserializeObject(parts[2]);
+            dynamic changeDetail = JsonConvert.DeserializeObject(parts[3]);
+            dynamic saleDetails = JsonConvert.DeserializeObject(parts[4]);
+            dynamic customer = JsonConvert.DeserializeObject(parts[5]);
+            dynamic seller = JsonConvert.DeserializeObject(parts[6]);
+            dynamic company = JsonConvert.DeserializeObject(parts[7]);
+            
 
             dynamic timbre = null;
-            Folio = (string)venta.folio;
+            Folio = (string)sale.folio;
 
 
             // forma de pago
             List<Tuple<string, string>> payMethod = new List<Tuple<string, string>>();
-            if (venta.type == "cash")
+            if (sale.type == "cash")
             {
-                payMethod.Add(new Tuple<string, string>("EFECTIVO:", Convert.ToString(App.moneyFormat(venta.cash))));
+                payMethod.Add(new Tuple<string, string>("EFECTIVO:", Convert.ToString(App.moneyFormat(sale.cash))));
             }
 
-            if (venta.type == "card")
+            if (sale.type == "card")
             {
-                payMethod.Add(new Tuple<string, string>("TARJETA:", Convert.ToString(App.moneyFormat(totales.total))));
+                payMethod.Add(new Tuple<string, string>("TARJETA:", Convert.ToString(App.moneyFormat(totals.total))));
             }
 
-            if (venta.type == "deposit")
+            if (sale.type == "deposit")
             {
-                payMethod.Add(new Tuple<string, string>("TRANSFERENCIA:", Convert.ToString(App.moneyFormat(totales.total))));
+                payMethod.Add(new Tuple<string, string>("TRANSFERENCIA:", Convert.ToString(App.moneyFormat(totals.total))));
             }
 
-            if (venta.type == "credit")
+            if (sale.type == "credit")
             {
-                payMethod.Add(new Tuple<string, string>("CRÉDITO:", Convert.ToString(App.moneyFormat(totales.total))));
+                payMethod.Add(new Tuple<string, string>("CRÉDITO:", Convert.ToString(App.moneyFormat(totals.total))));
             }
 
-            if (venta.type == "free")
+            if (sale.type == "free")
             {
                 payMethod.Add(new Tuple<string, string>("LIBRE:", Convert.ToString(App.moneyFormat(0))));
             }
@@ -295,17 +295,17 @@ namespace OnlineReceiptPrintingApp
 
 
             // cambio en caja
-            decimal change = Convert.ToDecimal(venta.change);
+            decimal saleChange = Convert.ToDecimal(sale.change);
 
-            if (change > 0)
+            if (saleChange > 0)
             {
-                payMethod.Add(new Tuple<string, string>("CAMBIO:", Convert.ToString(App.moneyFormat(change))));
+                payMethod.Add(new Tuple<string, string>("CAMBIO:", Convert.ToString(App.moneyFormat(saleChange))));
 
-                if (cambio.pending_cash_change == true)
+                if (changeDetail.has_pending_change == true)
                 {
-                    string changeStatus = cambio.status == "pending" ? "PENDIENTE" : (cambio.status == "delivered" ? "ENTREGADO" : (cambio.status == "cancelled" ? "CANCELADO" : "SIN DEFINIR"));
+                    string changeStatus = changeDetail.status == "pending" ? "PENDIENTE" : (changeDetail.status == "delivered" ? "ENTREGADO" : (changeDetail.status == "cancelled" ? "CANCELADO" : "SIN DEFINIR"));
                     payMethod.Add(new Tuple<string, string>("ESTATUS: ", changeStatus));
-                    payMethod.Add(new Tuple<string, string>("C.F.", Convert.ToString(App.moneyFormat(cambio.pending_change))));
+                    payMethod.Add(new Tuple<string, string>("C.F.", Convert.ToString(App.moneyFormat(changeDetail.amount))));
                     payMethod.Add(new Tuple<string, string>("CONSERVE EL TICKET", ":)"));
                 }
             }
@@ -314,7 +314,7 @@ namespace OnlineReceiptPrintingApp
             dynamic delivery = null;
             if (parts.Length > 7 && parts[8] != "null")
             {
-                delivery = JsonConvert.DeserializeObject(parts[7]);
+                delivery = JsonConvert.DeserializeObject(parts[8]);
             }
 
 
@@ -393,17 +393,17 @@ namespace OnlineReceiptPrintingApp
                 if (info.business_information == true)
                 {
                     // Se convierte el valor a string de manera segura
-                    string telefono = empresa["phone"]?.ToString();
-                    string rfc = empresa["taxpayer_id"]?.ToString();
+                    string telefono = company["phone"]?.ToString();
+                    string rfc = company["taxpayer_id"]?.ToString();
 
                     // Construye el texto solo si hay teléfono
                     string textoTelefono = !string.IsNullOrEmpty(telefono) ? $"TEL: {telefono}" : "";
                     string textoRfc = !string.IsNullOrEmpty(rfc) ? $"RFC: {rfc}" : "";
 
                     // datos de la empresa ( puedes quitar y/o agregar los que necesites, solo debes enviarlos desde la web )               
-                    yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, Convert.ToString(empresa["business_name"]), drawFont, drawBrush, companySF, ev.MarginBounds, yPos);
-                    yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, Convert.ToString(empresa["business_activity"]), drawFont, drawBrush, companySF, ev.MarginBounds, yPos);
-                    yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, Convert.ToString(empresa["address"]), drawFont, drawBrush, companySF, ev.MarginBounds, yPos);
+                    yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, Convert.ToString(company["business_name"]), drawFont, drawBrush, companySF, ev.MarginBounds, yPos);
+                    yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, Convert.ToString(company["business_activity"]), drawFont, drawBrush, companySF, ev.MarginBounds, yPos);
+                    yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, Convert.ToString(company["address"]), drawFont, drawBrush, companySF, ev.MarginBounds, yPos);
                     //yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, Convert.ToString( "empresa["taxpayer_id"]), drawFont, drawBrush, companySF, ev.MarginBounds, yPos);
                     //yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, $"TEL: {(string)empresa["phone"]}", drawFont, drawBrush, companySF, ev.MarginBounds, yPos);
                     yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, textoRfc, drawFont, drawBrush, companySF, ev.MarginBounds, yPos);
@@ -418,15 +418,15 @@ namespace OnlineReceiptPrintingApp
                 // ==================================================================== //
                 //                       CLIENTE
                 // ==================================================================== //             
-                int miClienteID = (int)cliente.id;
+                int miClienteID = (int)customer.id;
 
                 if (miClienteID != 0)
                 {
                     genericSF.Alignment = StringAlignment.Near;
 
-                    yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, $"CLIENTE: {Convert.ToString(cliente["customer_key"])} ", drawFont, drawBrush, genericSF, ev.MarginBounds, yPos);
-                    //yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, Convert.ToString(cliente["address"]), drawFont, drawBrush, companySF, ev.MarginBounds, yPos);
-                    //yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, Convert.ToString(cliente["phone"]), drawFont, drawBrush, companySF, ev.MarginBounds, yPos);
+                    yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, $"CLIENTE: {Convert.ToString(customer["name"])} ", drawFont, drawBrush, genericSF, ev.MarginBounds, yPos);
+                    //yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, Convert.ToString(customer["address"]), drawFont, drawBrush, companySF, ev.MarginBounds, yPos);
+                    //yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, Convert.ToString(customer["phone"]), drawFont, drawBrush, companySF, ev.MarginBounds, yPos);
 
                     //separador
                     yPos = TablePrinter80LLPOS.PrintSeparator(ev.Graphics, ev, yPos, "dotted");
@@ -436,15 +436,12 @@ namespace OnlineReceiptPrintingApp
                 //                      FOLIO Y REFERENCIA
                 // ==================================================================== //
 
-                string tipoVnta = (venta.type == "cash" || venta.type == "card")? "CONTADO" : (venta.type == "credit" ? "CRÉDITO" : (venta.type == "deposit" ? "DEPÓSITO/TRANSFERENCIA" : (venta.type == "free" ? "LIBRE" : "NO DEFINIDO")));
+                string tipoVnta = (sale.type == "cash" || sale.type == "card")? "CONTADO" : (sale.type == "credit" ? "CRÉDITO" : (sale.type == "deposit" ? "DEPÓSITO/TRANSFERENCIA" : (sale.type == "free" ? "LIBRE" : "NO DEFINIDO")));
 
                 yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, $"FOLIO: {Folio}", drawFont, drawBrush, genericSF, ev.MarginBounds, yPos);
-                yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, "FECHA: " + Convert.ToDateTime(info.sale_date).ToString("dd/MM/yy hh:mm tt"), drawFont, drawBrush, genericSF, ev.MarginBounds, yPos);
+                yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, "FECHA: " + Convert.ToDateTime(sale.created_at).ToString("dd/MM/yy hh:mm tt"), drawFont, drawBrush, genericSF, ev.MarginBounds, yPos);
                 yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, $"T.V.: {tipoVnta}", drawFont, drawBrush, genericSF, ev.MarginBounds, yPos);
-                yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, "ATENDIÓ: " + Convert.ToString(user["user_key"]) , drawFont, drawBrush, genericSF, ev.MarginBounds, yPos);
-                //yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, "ATENDIÓ: " + Convert.ToString(user["name"]) + " [" + Convert.ToString(user["user_key"]) + "]", drawFont, drawBrush, genericSF, ev.MarginBounds, yPos);
-
-
+                yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, "ATENDIÓ: " + Convert.ToString(seller["name"]), drawFont, drawBrush, genericSF, ev.MarginBounds, yPos);
 
 
 
@@ -454,7 +451,7 @@ namespace OnlineReceiptPrintingApp
 
                 Font font = new Font("Segoe UI", 7);
 
-                yPos = TablePrinter80LLPOS.PrintDetailTable(ev.Graphics, ev, pd, yPos, detalle);
+                yPos = TablePrinter80LLPOS.PrintDetailTable(ev.Graphics, ev, pd, yPos, saleDetails);
                 yPos += 10;
 
 
@@ -467,7 +464,7 @@ namespace OnlineReceiptPrintingApp
                 // ==================================================================== //
                 //                          TOTALES
                 // ==================================================================== //                                 
-                yPos = TablePrinter80LLPOS.PrintSubtotalTable(ev.Graphics, ev, totales, yPos, true);
+                yPos = TablePrinter80LLPOS.PrintSubtotalTable(ev.Graphics, ev, totals, yPos, true);
                 yPos += 10;
 
 
@@ -500,7 +497,7 @@ namespace OnlineReceiptPrintingApp
                 // ==================================================================== //
                 //                      NOTA DE VENTA
                 // ==================================================================== //
-                string notes = Convert.ToString(venta.notes);
+                string notes = Convert.ToString(sale.notes);
                 if (!string.IsNullOrEmpty(notes))
                 {
                     yPos = TablePrinter80LLPOS.PrintNotes(ev.Graphics, ev, notes, yPos);
@@ -511,7 +508,7 @@ namespace OnlineReceiptPrintingApp
                 // ==================================================================== //
                 //                          leyenda final
                 // ==================================================================== //
-                string notesleyend = Convert.ToString(empresa.leyend);
+                string notesleyend = Convert.ToString(company.leyend);
                 int yPosAdds = 20; //espacio para la publicidad
                 int yPosAddsBarcode = 85; //espacio para el QR
 
@@ -521,7 +518,7 @@ namespace OnlineReceiptPrintingApp
                      yPosAddsBarcode = 150;
 
                     RectangleF leyendRect = new RectangleF(ev.MarginBounds.Left, yPos + 20, ev.MarginBounds.Width, ev.MarginBounds.Height);
-                    ev.Graphics.DrawString((string)empresa.leyend, new Font("Segoe UI", 7, FontStyle.Bold), drawBrush, leyendRect, companySF);
+                    ev.Graphics.DrawString((string)company.leyend, new Font("Segoe UI", 7, FontStyle.Bold), drawBrush, leyendRect, companySF);
                 }
 
                 if (info.with_advertising == true)
@@ -606,6 +603,318 @@ namespace OnlineReceiptPrintingApp
 
 
             // Enviar comandos a la impresora
+            RawPrinterHelper.SendStringToPrinter(ConfigManager.objConfig.Printer, command.ToString());
+            command.Clear();
+
+
+        }
+        #endregion
+
+        #region CashSessionCut58 PrintDocument
+
+        public static void printCashSessionCut58(string json)
+        {
+
+            //partes json
+            string[] parts = json.Split('|');
+
+            //deserealización
+            dynamic info = JsonConvert.DeserializeObject<dynamic>(parts[0]);
+            dynamic company = JsonConvert.DeserializeObject<dynamic>(parts[1]);
+            dynamic cashBox = JsonConvert.DeserializeObject<dynamic>(parts[2]);
+            dynamic totals = JsonConvert.DeserializeObject<dynamic>(parts[3]);
+            dynamic incomingMovements = JsonConvert.DeserializeObject<dynamic>(parts[4]);
+            dynamic outgoingMovements = JsonConvert.DeserializeObject<dynamic>(parts[5]);
+            dynamic salesSummary = JsonConvert.DeserializeObject<dynamic>(parts[6]);
+            dynamic salesCounts = JsonConvert.DeserializeObject<dynamic>(parts[7]);
+
+
+            Custom58 obj = new Custom58();
+
+            // info de la empresa
+            // Inicializamos la lista vacía (siempre existe)
+            List<Tuple<string, bool, float, string>> companyLines = new List<Tuple<string, bool, float, string>>();
+            // Solo agregamos elementos si el usuario desea mostrar la info
+            if (info.business_information == true)
+            {
+                // Normalizamos los campos opcionales de manera segura
+                string taxpayerId = (company.taxpayer_id == null) ? string.Empty : company.taxpayer_id.ToString().Trim();
+                string phoneTenant = (company.phone == null) ? string.Empty : company.phone.ToString().Trim();
+
+                // Agregamos los elementos
+                companyLines.Add(new Tuple<string, bool, float, string>(Convert.ToString(company.business_name), true, 7, "Center"));
+                companyLines.Add(new Tuple<string, bool, float, string>(Convert.ToString(company.business_activity), false, 7, "Center"));
+                companyLines.Add(new Tuple<string, bool, float, string>(Convert.ToString(company.address), false, 7, "Center"));
+
+                // RFC solo si tiene valor
+                if (!string.IsNullOrWhiteSpace(taxpayerId))
+                {
+                    companyLines.Add(new Tuple<string, bool, float, string>($"RFC: {taxpayerId}", false, 7f, "Center"));
+                }
+
+                // Teléfono solo si tiene valor
+                if (!string.IsNullOrWhiteSpace(phoneTenant))
+                {
+                    companyLines.Add(new Tuple<string, bool, float, string>($"TEL: {phoneTenant}", false, 7f, "Center"));
+                }
+
+            }
+            // A partir de aquí, companyLines siempre existe
+            // Si info.business_information es false, la lista estará vacía y no mostrará nada
+
+
+            // información general headers
+            List<Tuple<string, string, float>> headerLines = new List<Tuple<string, string, float>>
+            {
+                new Tuple<string,string, float>($"{cashBox.cash_box_name} [{cashBox.cash_session_status}]","Left", 7),
+                new Tuple<string,string, float>($"Sesión de Caja: #.{cashBox.cash_session_id}","Left", 7),
+                new Tuple<string,string, float>($"Caja Key: #.{cashBox.cash_box_key}","Left", 7),
+                new Tuple<string,string, float>($"Vendedor: {cashBox.seller}","Left", 7),
+                new Tuple<string,string, float>($"Apertura por: {cashBox.opened_by}","Left", 7),
+                new Tuple<string,string, float>($"Cierre por: {cashBox.closed_by}","Left", 7),
+                new Tuple<string,string, float>($"Fecha de Apertura: {Convert.ToDateTime(cashBox.opened_at).ToString("dd/MM/yy hh:mm tt")}","Left", 7),
+                new Tuple<string,string, float>($"Fecha de Cierre: {Convert.ToDateTime(cashBox.closed_at).ToString("dd/MM/yy hh:mm tt")}","Left", 7),
+                new Tuple<string,string, float>($"Cambio P. Vta: {App.moneyFormat(cashBox.pending_cash_total).ToString() }","Left", 7),
+            };
+
+
+            // Totales de la Sesión Encabezado
+            List<Tuple<string, bool, float, string>> sessionTotalsHeader = new List<Tuple<string, bool, float, string>> {
+                new Tuple<string,bool, float,string>(Convert.ToString("TOTALES DE SESIÓN DE CAJA"), true, 8, "Center")
+            };
+
+
+            // Ventas Encabezado
+            List<Tuple<string, bool, float, string>> salesHeader = new List<Tuple<string, bool, float, string>> {
+                new Tuple<string,bool, float,string>(Convert.ToString("VENTAS"), true, 8, "Center")
+            };
+
+
+            // Estadísticas de Ventas Encabezado
+            List<Tuple<string, bool, float, string>> salesStatisticsHeader = new List<Tuple<string, bool, float, string>> {
+                new Tuple<string,bool, float,string>(Convert.ToString("ESTADISTICAS DE VENTAS"), true, 8, "Center")
+            };
+
+            // Movimientos de Ingreso Encabezado
+            List<Tuple<string, bool, float, string>> incomeMovementsHeader = new List<Tuple<string, bool, float, string>> {
+                new Tuple<string,bool, float,string>(Convert.ToString("ENTRADA DE EFECTIVO"), true, 8, "Center")
+            };
+
+            // Pie de página de movimientos de ingresos
+            float ingresosTotal = ((IEnumerable<dynamic>)totals)
+                   .FirstOrDefault(item => item.movement == "Ingreso/Entradas")?.amount ?? 0f;
+            List<Tuple<string, string>> incomeMovementsFooter = new List<Tuple<string, string>>
+            {
+                new Tuple<string, string>("TOTAL:", App.moneyFormat(ingresosTotal).ToString())
+
+            };
+
+            // encabezado de movimientos de gastos
+            List<Tuple<string, bool, float, string>> expenseMovementsHeader = new List<Tuple<string, bool, float, string>> {
+                new Tuple<string,bool, float,string>(Convert.ToString("SALIDA DE EFECTIVO"), true, 8, "Center")
+            };
+            // Pie de página de movimientos de egresos
+            float salidasTotal = ((IEnumerable<dynamic>)totals)
+                   .FirstOrDefault(item => item.movement == "Egresos/Salidas")?.amount ?? 0f;
+            List<Tuple<string, string>> expenseMovementsFooter = new List<Tuple<string, string>>
+            {
+                new Tuple<string, string>("TOTAL:", App.moneyFormat(salidasTotal).ToString())
+
+            };
+
+            // seccion consultado
+            List<Tuple<string, bool, float, string>> consultedByHeader = new List<Tuple<string, bool, float, string>>
+            {
+                /* new Tuple<string,bool, float,string>(Convert.ToString("CONSULTADO"), true, 8, "Center"),
+                 new Tuple<string,bool, float,string>(Convert.ToString(consultado.usuario), true, 8, "Center"),
+                 new Tuple<string,bool, float,string>(Convert.ToString(consultado.email), false, 7, "Center"),
+                 new Tuple<string,bool, float,string>(Convert.ToString(consultado.fecha), false, 7, "Center")*/
+            };
+
+
+           
+
+            //imprimir
+            obj.PrintCashDrawerCut58(
+                companyLines, sessionTotalsHeader, salesHeader, salesStatisticsHeader, incomeMovementsHeader, expenseMovementsHeader, consultedByHeader,
+                headerLines, totals, salesSummary, salesCounts, incomingMovements, outgoingMovements,
+                incomeMovementsFooter, expenseMovementsFooter);
+
+        }
+        #endregion
+
+        #region productsSoldPrintDocument
+        public static void productsSoldReceipt80(string jsonData, bool printLogo, bool printTimbre = false, bool cedible = false)
+        {
+
+
+            PrintPreviewDialog ppd = new PrintPreviewDialog();
+            float margin = 0;
+            string Folio = null;
+
+            string[] parts = jsonData.Split('|');
+            dynamic info = JsonConvert.DeserializeObject<dynamic>(parts[0]);
+            dynamic detalle = JsonConvert.DeserializeObject(parts[1]);
+            dynamic venta = JsonConvert.DeserializeObject(parts[2]);
+
+
+
+            Folio = (string)detalle.folio;
+
+
+
+
+            PrintDocument pd = new PrintDocument();
+            //pd.PrinterSettings.PrinterName = "80mm";// ConfigManager.objConfig.Printer;
+            pd.PrinterSettings.PrinterName = ConfigManager.objConfig.Printer;
+
+
+
+            // establecer márgenes del documento a cero
+            pd.DefaultPageSettings.Margins = new Margins(0, 25, 0, 0);
+
+            // calcular 80mm de papel personalizado,
+            // esto se puede tomar automático de los settings de la impresora, pero si es asiática o tiene driver genérico no siempre funciona
+            int paperWidth = (int)(80 / 25.4 * 100);
+            int largeHeight = 5000; // establecer un tamaño de página muy alto para permitir impresión continua y previsualizar completo el documento       
+            pd.DefaultPageSettings.PaperSize = new PaperSize("Custom", paperWidth, largeHeight);
+
+
+            pd.PrintPage += (sender, ev) =>
+            {
+                // ==================================================================== //
+                //                              LOGO
+                // ==================================================================== //
+                float yPos = margin;
+                float logoWidth = 160;
+                float logoHeight = 80;
+
+                if (File.Exists(Application.StartupPath + "\\config\\logo.png"))
+                {
+                    Image logo = Image.FromFile(Application.StartupPath + "\\config\\logo.png");
+
+                    ev.Graphics.DrawImage(logo, (ev.PageBounds.Width - logoWidth) / 2, 0, logoWidth, logoHeight);
+
+                    yPos += logoHeight;
+                }
+
+
+
+                // ==================================================================== //
+                //                              EMPRESA
+                // ==================================================================== //           
+                SolidBrush drawBrush = new SolidBrush(Color.Black);
+                // para alinear distintos bloques de info en posiciones diferentes
+                StringFormat genericSF = new StringFormat();
+
+                // alinear al centro la info de la empresa
+                StringFormat companySF = new StringFormat
+                {
+                    Alignment = StringAlignment.Center,
+                };
+
+                // fuente info empresa
+                Font drawFont = new Font("Segoe UI", 8, FontStyle.Regular);
+
+                // ajustar el rectángulo para centrar el texto
+                RectangleF rect = new RectangleF(ev.MarginBounds.Left, yPos, ev.MarginBounds.Width, ev.MarginBounds.Height);
+
+
+                //separador
+                yPos = TablePrinter80LLPOS.PrintSeparator(ev.Graphics, ev, yPos, "dotted");
+
+                yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, Convert.ToString(detalle["operation"]), drawFont, drawBrush, companySF, ev.MarginBounds, yPos);
+
+                //separador
+                yPos = TablePrinter80LLPOS.PrintSeparator(ev.Graphics, ev, yPos, "dotted");
+
+
+                // ==================================================================== //
+                //                      FOLIO Y REFERENCIA
+                // ==================================================================== //
+
+
+
+                yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, $"FOLIO: {Folio}", drawFont, drawBrush, genericSF, ev.MarginBounds, yPos);
+                yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, $"TOTAL: ${Convert.ToString(App.moneyFormat(detalle.total))}", drawFont, drawBrush, genericSF, ev.MarginBounds, yPos);
+                yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, $"PRODUCTOS: {Convert.ToString(detalle["items"])}", drawFont, drawBrush, genericSF, ev.MarginBounds, yPos);
+                yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, $"STATUS: {Convert.ToString(detalle["status"])}", drawFont, drawBrush, genericSF, ev.MarginBounds, yPos);
+                yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, $"FECHA: {Convert.ToString(detalle["date"])}", drawFont, drawBrush, genericSF, ev.MarginBounds, yPos);
+                // yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, $"USUARIO: {Convert.ToString(detalle["name"])}", drawFont, drawBrush, genericSF, ev.MarginBounds, yPos);
+                //yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, $"EMAIL: {Convert.ToString(detalle["email"])}", drawFont, drawBrush, genericSF, ev.MarginBounds, yPos);
+
+                // separador
+                yPos = TablePrinter80LLPOS.PrintSeparator(ev.Graphics, ev, yPos, "dotted");
+
+
+                // ==================================================================== //
+                //                       CLIENTE & USUARIO
+                // ==================================================================== //             
+
+                genericSF.Alignment = StringAlignment.Near;
+
+                yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, $"USUARIO: {Convert.ToString(detalle["user"])}", drawFont, drawBrush, genericSF, ev.MarginBounds, yPos);
+                //yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, Convert.ToString(cliente["address"]), drawFont, drawBrush, companySF, ev.MarginBounds, yPos);
+                //yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, Convert.ToString(cliente["phone"]), drawFont, drawBrush, companySF, ev.MarginBounds, yPos);
+                yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, $"EMAIL: {Convert.ToString(detalle["email"])}", drawFont, drawBrush, genericSF, ev.MarginBounds, yPos);
+
+
+
+
+                // ==================================================================== //
+                //                      DETALLE / PRODUCTOS
+                // ==================================================================== //
+
+                Font font = new Font("Segoe UI", 7);
+
+                yPos = TablePrinter80LLPOS.PrintSaleDetailTable(ev.Graphics, ev, pd, yPos, venta);
+                yPos += 10;
+
+
+                // separador
+                yPos += 20;// 10;
+                yPos = TablePrinter80LLPOS.PrintSeparator(ev.Graphics, ev, yPos, "dotted");//-20
+
+
+
+
+                ev.HasMorePages = false;
+
+            };
+
+
+
+            // imprimir documento
+            pd.Print();
+
+            //previsualizar documento
+            //(la previsualización te muestra un 90% de lo que realmente se imprime, tiene un margen de variación y deberás hacer pruebas de impresión
+            //física para ajustar cualquier detalle
+            /*ppd.Document = pd;
+            ppd.WindowState = FormWindowState.Maximized; // vista previa maximizada
+            ppd.PrintPreviewControl.Zoom = 2.0; // establecer el zoom al 200%
+            ppd.ShowDialog();*/
+
+
+
+
+            //cortar papel
+            StringBuilder command = new StringBuilder();
+            if (!App.NoBreakLines())
+            {
+                // imprimir espacios al final del ticket para agregar márgen después del branding / leyenda
+                // se imprimen 5 espacios, esto debes ajustarlo en función de tu impresora, porque algunas impresoras asiáticas sacan mucho papel blanco al final
+                // y algunas ocuparás imprimir más de 5 espacios
+                command.AppendLine("");
+                command.AppendLine("");
+                // command.AppendLine("");
+                //command.AppendLine("");
+                //command.AppendLine("");
+            }
+            // estos comandos de corte pueden variar según el modelo de impresora
+            //command.AppendLine("\x1B" + "m");
+            command.AppendLine("\x1B" + "d" + "\x0");
+
             RawPrinterHelper.SendStringToPrinter(ConfigManager.objConfig.Printer, command.ToString());
             command.Clear();
 
@@ -960,300 +1269,6 @@ namespace OnlineReceiptPrintingApp
         }
         #endregion
 
-        #region CashDrawerCutPrintDocument
-        public static void printCashDrawerCut58(string json)
-        {
-
-            //partes json
-            string[] parts = json.Split('|');
-
-            //deserealización
-            dynamic corteDeCaja = JsonConvert.DeserializeObject<dynamic>(parts[1]);
-            dynamic detalleGeneral = JsonConvert.DeserializeObject<dynamic>(parts[2]);
-            dynamic ventas = JsonConvert.DeserializeObject<dynamic>(parts[3]);
-            dynamic otrosDatos = JsonConvert.DeserializeObject<dynamic>(parts[4]);
-            dynamic entradaEfectivo = JsonConvert.DeserializeObject<dynamic>(parts[5]);
-            dynamic salidaEfectivo = JsonConvert.DeserializeObject<dynamic>(parts[6]);
-            dynamic usuario = JsonConvert.DeserializeObject<dynamic>(parts[7]);
-            dynamic caja = JsonConvert.DeserializeObject<dynamic>(parts[8]);
-            //dynamic empresa = JsonConvert.DeserializeObject<dynamic>(parts[9]);
-            // dynamic consultado = JsonConvert.DeserializeObject<dynamic>(parts[10]);
-
-
-            Custom58 obj = new Custom58();
-
-            // info de la empresa
-            List<Tuple<string, bool, float, string>> companyLines = new List<Tuple<string, bool, float, string>> {
-                new Tuple<string,bool, float,string>(Convert.ToString("CORTE DE CAJA"), true, 8, "Center"),
-                /*new Tuple<string,bool, float,string>(Convert.ToString(empresa.name), true, 8, "Center"),
-                new Tuple<string,bool, float,string>(Convert.ToString(empresa.description), false, 7, "Center"),
-                new Tuple<string,bool, float,string>(Convert.ToString(empresa.address), false, 7, "Center")*/
-            };
-
-
-            // información general headers
-            List<Tuple<string, string, float>> headerLines = new List<Tuple<string, string, float>>
-            {
-                 new Tuple<string,string, float>($"{caja.name}","Left", 7),
-                 new Tuple<string,string, float>($"Folio: {corteDeCaja.id}","Left", 7),
-                 new Tuple<string,string, float>($"Fecha: {corteDeCaja.cut_date}","Left", 7),
-                 new Tuple<string,string, float>($"Usuario: {usuario.name}","Left", 7),
-                 new Tuple<string,string, float>($"Email: {usuario.email}","Left", 7)
-            };
-
-            // seccion en caja
-            List<Tuple<string, bool, float, string>> enCajaLines = new List<Tuple<string, bool, float, string>> {
-                new Tuple<string,bool, float,string>(Convert.ToString("EFECTIVO EN CAJA"), true, 8, "Center")
-            };
-            // totales en caja
-            List<Tuple<string, string>> totalEnCajaLines = new List<Tuple<string, string>>
-            {
-                new Tuple<string, string>("Total: ", corteDeCaja.cash_in_cashregister.ToString("c"))
-
-             };
-
-            // seccion ventas
-            List<Tuple<string, bool, float, string>> ventasLines = new List<Tuple<string, bool, float, string>> {
-                new Tuple<string,bool, float,string>(Convert.ToString("VENTAS"), true, 8, "Center")
-            };
-            // totales ventas
-            List<Tuple<string, string>> totalVentasLines = new List<Tuple<string, string>>
-            {
-                new Tuple<string, string>("Vetas Totales:", corteDeCaja.total_cash_sales.ToString("c"))
-
-            };
-
-            // seccion otros datos
-            List<Tuple<string, bool, float, string>> otrosDatosLines = new List<Tuple<string, bool, float, string>> {
-                new Tuple<string,bool, float,string>(Convert.ToString("OTROS DATOS"), true, 8, "Center")
-            };
-
-            // seccion entrada de efectivo
-            List<Tuple<string, bool, float, string>> entradaLines = new List<Tuple<string, bool, float, string>> {
-                new Tuple<string,bool, float,string>(Convert.ToString("ENTRADA DE EFECTIVO"), true, 8, "Center")
-            };
-            // totales entrada de efectivo
-            List<Tuple<string, string>> totalEntradaLines = new List<Tuple<string, string>>
-            {
-                new Tuple<string, string>("Depósitos Totales:", corteDeCaja.cash_inflow.ToString("c"))
-
-            };
-
-            // seccion salida de efectivo
-            List<Tuple<string, bool, float, string>> salidaLines = new List<Tuple<string, bool, float, string>> {
-                new Tuple<string,bool, float,string>(Convert.ToString("SALIDA DE EFECTIVO"), true, 8, "Center")
-            };
-            // totales salida de efectivo
-            List<Tuple<string, string>> totalSalidaLines = new List<Tuple<string, string>>
-            {
-                new Tuple<string, string>("Retiros Totales:", corteDeCaja.cash_outflow.ToString("c"))
-
-            };
-
-            // seccion consultado
-            List<Tuple<string, bool, float, string>> consultadoLines = new List<Tuple<string, bool, float, string>>
-            {
-                /* new Tuple<string,bool, float,string>(Convert.ToString("CONSULTADO"), true, 8, "Center"),
-                 new Tuple<string,bool, float,string>(Convert.ToString(consultado.usuario), true, 8, "Center"),
-                 new Tuple<string,bool, float,string>(Convert.ToString(consultado.email), false, 7, "Center"),
-                 new Tuple<string,bool, float,string>(Convert.ToString(consultado.fecha), false, 7, "Center")*/
-            };
-
-
-            // formas de pago
-            List<Tuple<string, string>> payMethod = new List<Tuple<string, string>>();
-            //payMethod.Add(new Tuple<string, string>("EFECTIVO:", Convert.ToDecimal(sale.cash).ToString("c"))); // $1500
-            //payMethod.Add(new Tuple<string, string>("CAMBIO:", Convert.ToDecimal(cash_sale - total_sale).ToString("c")));
-
-
-            //imprimir
-            obj.PrintCashDrawerCut58(
-                companyLines, enCajaLines, ventasLines, otrosDatosLines, entradaLines, salidaLines, consultadoLines,
-                headerLines, detalleGeneral, ventas, otrosDatos, entradaEfectivo, salidaEfectivo,
-                totalEnCajaLines, totalVentasLines, totalEntradaLines, totalSalidaLines,
-                payMethod);
-
-        }
-        #endregion
-
-        #region productsSoldPrintDocument
-        public static void productsSoldReceipt80(string jsonData, bool printLogo, bool printTimbre = false, bool cedible = false)
-        {
-
-
-            PrintPreviewDialog ppd = new PrintPreviewDialog();
-            float margin = 0;
-            string Folio = null;
-
-            string[] parts = jsonData.Split('|');
-            dynamic info = JsonConvert.DeserializeObject<dynamic>(parts[0]);
-            dynamic detalle = JsonConvert.DeserializeObject(parts[1]);
-            dynamic venta = JsonConvert.DeserializeObject(parts[2]);
-
-
-
-            Folio = (string)detalle.folio;
-
-
-
-
-            PrintDocument pd = new PrintDocument();
-            //pd.PrinterSettings.PrinterName = "80mm";// ConfigManager.objConfig.Printer;
-            pd.PrinterSettings.PrinterName = ConfigManager.objConfig.Printer;
-
-
-
-            // establecer márgenes del documento a cero
-            pd.DefaultPageSettings.Margins = new Margins(0, 25, 0, 0);
-
-            // calcular 80mm de papel personalizado,
-            // esto se puede tomar automático de los settings de la impresora, pero si es asiática o tiene driver genérico no siempre funciona
-            int paperWidth = (int)(80 / 25.4 * 100);
-            int largeHeight = 5000; // establecer un tamaño de página muy alto para permitir impresión continua y previsualizar completo el documento       
-            pd.DefaultPageSettings.PaperSize = new PaperSize("Custom", paperWidth, largeHeight);
-
-
-            pd.PrintPage += (sender, ev) =>
-            {
-                // ==================================================================== //
-                //                              LOGO
-                // ==================================================================== //
-                float yPos = margin;
-                float logoWidth = 160;
-                float logoHeight = 80;
-
-                if (File.Exists(Application.StartupPath + "\\config\\logo.png"))
-                {
-                    Image logo = Image.FromFile(Application.StartupPath + "\\config\\logo.png");
-
-                    ev.Graphics.DrawImage(logo, (ev.PageBounds.Width - logoWidth) / 2, 0, logoWidth, logoHeight);
-
-                    yPos += logoHeight;
-                }
-
-
-
-                // ==================================================================== //
-                //                              EMPRESA
-                // ==================================================================== //           
-                SolidBrush drawBrush = new SolidBrush(Color.Black);
-                // para alinear distintos bloques de info en posiciones diferentes
-                StringFormat genericSF = new StringFormat();
-
-                // alinear al centro la info de la empresa
-                StringFormat companySF = new StringFormat
-                {
-                    Alignment = StringAlignment.Center,
-                };
-
-                // fuente info empresa
-                Font drawFont = new Font("Segoe UI", 8, FontStyle.Regular);
-
-                // ajustar el rectángulo para centrar el texto
-                RectangleF rect = new RectangleF(ev.MarginBounds.Left, yPos, ev.MarginBounds.Width, ev.MarginBounds.Height);
-
-
-                //separador
-                yPos = TablePrinter80LLPOS.PrintSeparator(ev.Graphics, ev, yPos, "dotted");
-
-                yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, Convert.ToString(detalle["operation"]), drawFont, drawBrush, companySF, ev.MarginBounds, yPos);
-
-                //separador
-                yPos = TablePrinter80LLPOS.PrintSeparator(ev.Graphics, ev, yPos, "dotted");
-
-
-                // ==================================================================== //
-                //                      FOLIO Y REFERENCIA
-                // ==================================================================== //
-
-
-
-                yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, $"FOLIO: {Folio}", drawFont, drawBrush, genericSF, ev.MarginBounds, yPos);
-                yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, $"TOTAL: ${Convert.ToString(App.moneyFormat(detalle.total))}", drawFont, drawBrush, genericSF, ev.MarginBounds, yPos);
-                yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, $"PRODUCTOS: {Convert.ToString(detalle["items"])}", drawFont, drawBrush, genericSF, ev.MarginBounds, yPos);
-                yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, $"STATUS: {Convert.ToString(detalle["status"])}", drawFont, drawBrush, genericSF, ev.MarginBounds, yPos);
-                yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, $"FECHA: {Convert.ToString(detalle["date"])}", drawFont, drawBrush, genericSF, ev.MarginBounds, yPos);
-                // yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, $"USUARIO: {Convert.ToString(detalle["name"])}", drawFont, drawBrush, genericSF, ev.MarginBounds, yPos);
-                //yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, $"EMAIL: {Convert.ToString(detalle["email"])}", drawFont, drawBrush, genericSF, ev.MarginBounds, yPos);
-
-                // separador
-                yPos = TablePrinter80LLPOS.PrintSeparator(ev.Graphics, ev, yPos, "dotted");
-
-
-                // ==================================================================== //
-                //                       CLIENTE & USUARIO
-                // ==================================================================== //             
-
-                genericSF.Alignment = StringAlignment.Near;
-
-                yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, $"USUARIO: {Convert.ToString(detalle["user"])}", drawFont, drawBrush, genericSF, ev.MarginBounds, yPos);
-                //yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, Convert.ToString(cliente["address"]), drawFont, drawBrush, companySF, ev.MarginBounds, yPos);
-                //yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, Convert.ToString(cliente["phone"]), drawFont, drawBrush, companySF, ev.MarginBounds, yPos);
-                yPos = TablePrinter80LLPOS.PrintText(ev.Graphics, $"EMAIL: {Convert.ToString(detalle["email"])}", drawFont, drawBrush, genericSF, ev.MarginBounds, yPos);
-
-
-
-
-                // ==================================================================== //
-                //                      DETALLE / PRODUCTOS
-                // ==================================================================== //
-
-                Font font = new Font("Segoe UI", 7);
-
-                yPos = TablePrinter80LLPOS.PrintSaleDetailTable(ev.Graphics, ev, pd, yPos, venta);
-                yPos += 10;
-
-
-                // separador
-                yPos += 20;// 10;
-                yPos = TablePrinter80LLPOS.PrintSeparator(ev.Graphics, ev, yPos, "dotted");//-20
-
-
-
-
-                ev.HasMorePages = false;
-
-            };
-
-
-
-            // imprimir documento
-            pd.Print();
-
-            //previsualizar documento
-            //(la previsualización te muestra un 90% de lo que realmente se imprime, tiene un margen de variación y deberás hacer pruebas de impresión
-            //física para ajustar cualquier detalle
-            /*ppd.Document = pd;
-            ppd.WindowState = FormWindowState.Maximized; // vista previa maximizada
-            ppd.PrintPreviewControl.Zoom = 2.0; // establecer el zoom al 200%
-            ppd.ShowDialog();*/
-
-
-
-
-            //cortar papel
-            StringBuilder command = new StringBuilder();
-            if (!App.NoBreakLines())
-            {
-                // imprimir espacios al final del ticket para agregar márgen después del branding / leyenda
-                // se imprimen 5 espacios, esto debes ajustarlo en función de tu impresora, porque algunas impresoras asiáticas sacan mucho papel blanco al final
-                // y algunas ocuparás imprimir más de 5 espacios
-                command.AppendLine("");
-                command.AppendLine("");
-                // command.AppendLine("");
-                //command.AppendLine("");
-                //command.AppendLine("");
-            }
-            // estos comandos de corte pueden variar según el modelo de impresora
-            //command.AppendLine("\x1B" + "m");
-            command.AppendLine("\x1B" + "d" + "\x0");
-
-            RawPrinterHelper.SendStringToPrinter(ConfigManager.objConfig.Printer, command.ToString());
-            command.Clear();
-
-
-        }
-        #endregion
     }
 }
 

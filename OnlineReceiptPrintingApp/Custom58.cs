@@ -319,19 +319,16 @@ namespace OnlineReceiptPrintingApp
         }
 
         public void PrintCashDrawerCut58(
-            List<Tuple<string, bool, float, string>> companyLines,
-            List<Tuple<string, bool, float, string>> enCajaLines,
-            List<Tuple<string, bool, float, string>> ventasLines,
-            List<Tuple<string, bool, float, string>> otrosDatosLines,
-            List<Tuple<string, bool, float, string>> entradaLines,
-            List<Tuple<string, bool, float, string>> salidaLines,
-            List<Tuple<string, bool, float, string>> consultadoLines,
-            List<Tuple<string, string, float>> headerLines, dynamic detalleGeneral, dynamic ventas, dynamic otrosDatos, dynamic entradaEfectivo, dynamic salidaEfectivo,
-            List<Tuple<string, string>> totalEnCajaLines,
-            List<Tuple<string, string>> totalVentasLines,
-            List<Tuple<string, string>> totalEntradaLines,
-            List<Tuple<string, string>> totalSalidaLines,
-            List<Tuple<string, string>> payMethod, bool center = false, float margin = 0)
+         List<Tuple<string, bool, float, string>> companyLines,
+         List<Tuple<string, bool, float, string>> sessionTotalsHeader,
+         List<Tuple<string, bool, float, string>> salesHeader,
+         List<Tuple<string, bool, float, string>> salesStatisticsHeader,
+         List<Tuple<string, bool, float, string>> incomeMovementsHeader,
+         List<Tuple<string, bool, float, string>> expenseMovementsHeader,
+         List<Tuple<string, bool, float, string>> consultadoLines,
+         List<Tuple<string, string, float>> headerLines, dynamic sessionTotals, dynamic salesTotals, dynamic salesStatistics, dynamic incomeMovements, dynamic expenseMovements,
+         List<Tuple<string, string>> incomeMovementsFooter,
+         List<Tuple<string, string>> expenseMovementsFooter, bool center = false, float margin = 0)
         {
             PrintDocument pd = new PrintDocument();
             pd.PrinterSettings.PrinterName = ConfigManager.objConfig.Printer;
@@ -440,9 +437,9 @@ namespace OnlineReceiptPrintingApp
 
 
                 // ==================================================================== //
-                //          ENCABEZADO EFECTIVO EN CAJA
+                //          ENCABEZADO TOTALES DE SESIÓN DE CAJA
                 // ==================================================================== //
-                foreach (var line in enCajaLines)
+                foreach (var line in sessionTotalsHeader)
                 {
                     string text = line.Item1;
                     bool bold = line.Item2;
@@ -461,7 +458,7 @@ namespace OnlineReceiptPrintingApp
                 }
 
                 // ==================================================================== //
-                //                      DETALLE / EN CAJA
+                //                      DETALLE / TOTALES DE SESIÓN DE CAJA
                 // ==================================================================== //
                 int conta = 0;
                 string qty = null;
@@ -493,7 +490,7 @@ namespace OnlineReceiptPrintingApp
                 yPos += 15; // +5Espacio antes de la cabecera
 
                 // dibujar cabecera de la tabla conceptos
-                string[] headers = { "No.", "Movimientos", "Efectivo" };
+                string[] headers = { "No.", "Descripción", "Monto" };
                 for (int i = 0; i < headers.Length; i++)
                 {
                     float headerX = columnPositions[i];
@@ -509,13 +506,13 @@ namespace OnlineReceiptPrintingApp
                 yPos += rowHeight;
 
 
-                foreach (var item in detalleGeneral) //DETALLE movimiento
+                foreach (var item in sessionTotals) //DETALLE movimiento
                 {
                     conta++;
-                    qty = item.efectivo;
-                    description = item.movimiento;
+                    qty = item.amount;
+                    description = item.movement;
 
-                    string[] content = { conta.ToString(), description, qty };
+                    string[] content = { conta.ToString(), description, App.moneyFormat(qty).ToString() };
                     float startYPosition = ev.MarginBounds.Top + rowHeight; // posición inicial en Y para este movimiento
 
                     // calcula el número de líneas de texto en este movimiento                       
@@ -535,11 +532,7 @@ namespace OnlineReceiptPrintingApp
 
                 }
 
-                // ==================================================================== //
-                //                          TOTAL EN CAJA
-                // ==================================================================== //                                 
-                yPos = TablePrinter58.PrintSubtotalTable(ev.Graphics, ev, totalEnCajaLines, yPos, true);
-                yPos += 10;
+               
 
                 // separador
                 yPos = TablePrinter58.PrintSeparator(ev.Graphics, ev, yPos, "dotted");
@@ -548,7 +541,7 @@ namespace OnlineReceiptPrintingApp
                 // ==================================================================== //
                 //          ENCABEZADO VENTAS
                 // ==================================================================== //
-                foreach (var line in ventasLines)
+                foreach (var line in salesHeader)
                 {
                     string text = line.Item1;
                     bool bold = line.Item2;
@@ -578,7 +571,7 @@ namespace OnlineReceiptPrintingApp
                 yPos += 15; // +5Espacio antes de la cabecera
 
                 // dibujar cabecera de la tabla conceptos
-                string[] headers2 = { "No.", "Movimientos", "Efectivo" };
+                string[] headers2 = { "No.", "Descripción", "Monto" };
                 for (int i = 0; i < headers2.Length; i++)
                 {
                     float headerX = columnPositions[i];
@@ -594,13 +587,13 @@ namespace OnlineReceiptPrintingApp
                 yPos += rowHeight;
 
 
-                foreach (var itemVent in ventas) //DETALLE VENTAS
+                foreach (var itemVent in salesTotals) //DETALLE VENTAS
                 {
                     conta2++;
-                    qty2 = itemVent.efectivo;
-                    description2 = itemVent.movimiento;
+                    qty2 = itemVent.amount;
+                    description2 = itemVent.movement;
 
-                    string[] content = { conta2.ToString(), description2, qty2 };
+                    string[] content = { conta2.ToString(), description2, App.moneyFormat(qty2).ToString() };
                     float startYPosition = ev.MarginBounds.Top + rowHeight; // posición inicial en Y para este movimiento
 
                     // calcula el número de líneas de texto en este movimiento                       
@@ -622,12 +615,7 @@ namespace OnlineReceiptPrintingApp
 
                 }
 
-                // ==================================================================== //
-                //                          TOTALES VENTAS
-                // ==================================================================== //                                 
-                yPos = TablePrinter58.PrintSubtotalTable(ev.Graphics, ev, totalVentasLines, yPos, true);
-                yPos += 10;
-
+              
 
                 //separador
                 yPos = TablePrinter58.PrintSeparator(ev.Graphics, ev, yPos, "dotted");
@@ -635,9 +623,9 @@ namespace OnlineReceiptPrintingApp
 
 
                 // ==================================================================== //
-                //          ENCABEZADO OTROS DATOS
+                //          ENCABEZADO ESTADÍSTICAS DE VENTAS
                 // ==================================================================== //
-                foreach (var line in otrosDatosLines)
+                foreach (var line in salesStatisticsHeader)
                 {
                     string text = line.Item1;
                     bool bold = line.Item2;
@@ -656,7 +644,7 @@ namespace OnlineReceiptPrintingApp
                 }
 
                 // ==================================================================== //
-                //                      DETALLE / OTROS DATOS
+                //                      DETALLES / ESTADÍSTICAS DE VENTAS
                 // ==================================================================== //
 
                 int conta3 = 0;
@@ -667,7 +655,7 @@ namespace OnlineReceiptPrintingApp
                 yPos += 15; // +5Espacio antes de la cabecera
 
                 // dibujar cabecera de la tabla conceptos
-                string[] headers3 = { "No.", "Movimientos", "Efectivo" };
+                string[] headers3 = { "No.", "Descripción", "Cantidad" };
                 for (int i = 0; i < headers3.Length; i++)
                 {
                     float headerX = columnPositions[i];
@@ -683,11 +671,11 @@ namespace OnlineReceiptPrintingApp
                 yPos += rowHeight;
 
 
-                foreach (var itemOtros in otrosDatos) //DETALLE OTRO DATOS
+                foreach (var itemOtros in salesStatistics) //DETALLE 
                 {
                     conta3++;
-                    qty3 = itemOtros.efectivo;
-                    description3 = itemOtros.movimiento;
+                    qty3 = itemOtros.count;
+                    description3 = itemOtros.movement;
 
                     string[] content = { conta3.ToString(), description3, qty3 };
                     float startYPosition = ev.MarginBounds.Top + rowHeight; // posición inicial en Y para este movimiento
@@ -719,7 +707,7 @@ namespace OnlineReceiptPrintingApp
                 // ==================================================================== //
                 //          ENCABEZADO ENTRADA DE EFECTIVO
                 // ==================================================================== //
-                foreach (var line in entradaLines)
+                foreach (var line in incomeMovementsHeader)
                 {
                     string text = line.Item1;
                     bool bold = line.Item2;
@@ -750,7 +738,7 @@ namespace OnlineReceiptPrintingApp
                 yPos += 15; // +5Espacio antes de la cabecera
 
                 // dibujar cabecera de la tabla conceptos
-                string[] headers4 = { "No.", "Concepto", "Efectivo" };
+                string[] headers4 = { "No.", "Concepto", "Monto" };
                 for (int i = 0; i < headers4.Length; i++)
                 {
                     float headerX = columnPositions[i];
@@ -766,13 +754,13 @@ namespace OnlineReceiptPrintingApp
                 yPos += rowHeight;
 
 
-                foreach (var itemEntrada in entradaEfectivo) //DETALLE ENTRADA DE EFECTIVO
+                foreach (var itemEntrada in incomeMovements) //DETALLE ENTRADA DE EFECTIVO
                 {
                     conta4++;
-                    qty4 = itemEntrada.cash;
+                    qty4 = itemEntrada.amount;
                     description4 = itemEntrada.concept;
 
-                    string[] content = { conta4.ToString(), description4, qty4 };
+                    string[] content = { conta4.ToString(), description4, App.moneyFormat(qty4).ToString() };
                     float startYPosition = ev.MarginBounds.Top + rowHeight; // posición inicial en Y para este movimiento
 
                     // calcula el número de líneas de texto en este movimiento                       
@@ -797,7 +785,7 @@ namespace OnlineReceiptPrintingApp
                 // ==================================================================== //
                 //                          TOTALES ENTRADA DE EFECTIVO
                 // ==================================================================== //                                 
-                yPos = TablePrinter58.PrintSubtotalTable(ev.Graphics, ev, totalEntradaLines, yPos, true);
+                yPos = TablePrinter58.PrintSubtotalTable(ev.Graphics, ev, incomeMovementsFooter, yPos, true);
                 yPos += 10;
 
 
@@ -809,7 +797,7 @@ namespace OnlineReceiptPrintingApp
                 // ==================================================================== //
                 //          ENCABEZADO SALIDA DE EFECTIVO
                 // ==================================================================== //
-                foreach (var line in salidaLines)
+                foreach (var line in expenseMovementsHeader)
                 {
                     string text = line.Item1;
                     bool bold = line.Item2;
@@ -840,7 +828,7 @@ namespace OnlineReceiptPrintingApp
                 yPos += 15; // +5Espacio antes de la cabecera
 
                 // dibujar cabecera de la tabla conceptos
-                string[] headers5 = { "No.", "Concepto", "Efectivo" };
+                string[] headers5 = { "No.", "Concepto", "Monto" };
                 for (int i = 0; i < headers5.Length; i++)
                 {
                     float headerX = columnPositions[i];
@@ -856,13 +844,13 @@ namespace OnlineReceiptPrintingApp
                 yPos += rowHeight;
 
 
-                foreach (var itemSalida in salidaEfectivo) //DETALLE ENTRADA DE EFECTIVO
+                foreach (var itemSalida in expenseMovements) //DETALLE ENTRADA DE EFECTIVO
                 {
                     conta5++;
-                    qty5 = itemSalida.cash;
+                    qty5 = itemSalida.amount;
                     description5 = itemSalida.concept;
 
-                    string[] content = { conta5.ToString(), description5, qty5 };
+                    string[] content = { conta5.ToString(), description5, App.moneyFormat(qty5).ToString() };
                     float startYPosition = ev.MarginBounds.Top + rowHeight; // posición inicial en Y para este movimiento
 
                     // calcula el número de líneas de texto en este movimiento                       
@@ -887,7 +875,7 @@ namespace OnlineReceiptPrintingApp
                 // ==================================================================== //
                 //                          TOTALES SALIDA DE EFECTIVO
                 // ==================================================================== //                                 
-                yPos = TablePrinter58.PrintSubtotalTable(ev.Graphics, ev, totalSalidaLines, yPos, true);
+                yPos = TablePrinter58.PrintSubtotalTable(ev.Graphics, ev, expenseMovementsFooter, yPos, true);
                 yPos += 10;
 
 
@@ -931,26 +919,44 @@ namespace OnlineReceiptPrintingApp
 
             //previsualizar documento
             /*PrintPreviewDialog ppd = new PrintPreviewDialog();
-             ppd.Document = pd;
-             ppd.WindowState = FormWindowState.Maximized; // vista previa maximizada
-             ppd.PrintPreviewControl.Zoom = 2.0; // establecer el zoom al 200%
-             ppd.ShowDialog();*/
+            ppd.Document = pd;
+            ppd.WindowState = FormWindowState.Maximized; // vista previa maximizada
+            ppd.PrintPreviewControl.Zoom = 2.0; // establecer el zoom al 200%
+            ppd.ShowDialog();*/
 
 
-
-
-            //cortar papel
+            // =========================
+            // CORTE PRECISO DE PAPEL + APERTURA DE CAJA
+            // =========================
             StringBuilder command = new StringBuilder();
-            /*command.AppendLine("");
-            command.AppendLine("");
-            command.AppendLine("");
-            command.AppendLine("");
-            command.AppendLine("");*/
-            ///command.AppendLine("\x1B" + "m");
-            command.AppendLine("\x1B" + "d" + "\x0");
-            command.AppendLine("\x1B" + "p" + "\x00" + "\x0F" + "\x96"); // caracteres de apertura cajon 0
 
-            RawPrinterHelper.SendStringToPrinter1(ConfigManager.objConfig.Printer, command.ToString());
+            // Si la impresora necesita un feed mínimo antes del corte, podemos usar 1-3 líneas máximo
+            if (ConfigManager.objConfig.BreakLines == true)
+            {
+                // imprimir espacios al final del ticket para agregar márgen después del branding / leyenda
+                // se imprimen 5 espacios, esto debes ajustarlo en función de tu impresora, porque algunas impresoras asiáticas sacan mucho papel blanco al final
+                // y algunas ocuparás imprimir más de 5 espacios
+
+                // feed mínimo 1 línea para dar margen debajo del contenido, no más
+                command.Append("\x1B" + "d" + "\x03"); // feed mínimo 3 línea
+            }
+
+            // Corte total del ticket (corta a la cuchilla)
+            if (ConfigManager.objConfig.Cut == true)
+            {
+                // Corte total del ticket (corta a la cuchilla)
+                command.Append("\x1D" + "V" + "\x00"); // corte completo (sin dejar papel extra)
+            }
+
+            // Abrir cajón de efectivo
+            if (ConfigManager.objConfig.Drawer == true)
+            {
+                // Abrir cajón de efectivo
+                command.Append("\x1B" + "p" + "\x00" + "\x0F" + "\x96"); // Pin 0, pulso 15ms, intervalo 150ms
+            }
+
+            // Enviar comandos a la impresora
+            RawPrinterHelper.SendStringToPrinter(ConfigManager.objConfig.Printer, command.ToString());
             command.Clear();
 
         }
